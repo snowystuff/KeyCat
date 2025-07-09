@@ -13,13 +13,13 @@ keyPath = os.path.join(appDir, conf.get("key"))
 sep = ','
 new = ';'
 
-chunk = 16
+chunk = 65536
 tk = b"0Qm3dfrB9K81TqKroirdp9Sw3ZwfXFl4EuipKP1Ahn0="
 
 def now():
     return int(time.time())
 
-def emptyDatabase():
+def empty():
     try:
         with open(dbFile,'w') as file:
             file.close()
@@ -33,15 +33,18 @@ f = Fernet(tk)
 def write():
     global table
     data=""
-    for i in table:
-        t=table[i].get('t') or default
-        v=table[i].get('v') or ""
-        ct=str(table[i].get('ct') or now())
-        at=str(table[i].get('at') or "")
-        data+=i+sep+t+sep+v+sep+ct+sep+at+new
+    for i,va in enumerate(table):
+        t=table[va].get('t') or default
+        v=table[va].get('v') or ""
+        ct=str(table[va].get('ct') or now())
+        at=str(table[va].get('at') or "")
+        n = new
+        if i == 0:
+            n = ""
+        data+=n+va+sep+t+sep+v+sep+ct+sep+at
     chunks = [data[i:i + chunk] for i in range(0, len(data), chunk)]
     
-    emptyDatabase()
+    empty()
     try:
         with open(dbFile,'ab') as file:
             for i,v in enumerate(chunks):
@@ -66,15 +69,22 @@ def read():
                 dec = f.decrypt(i).decode()
                 string += dec
             file.close()
+    except FileNotFoundError:
+        os.makedirs(os.path.dirname(dbFile), exist_ok=True)
+        with open(dbFile,'w') as file:
+            file.close()
     except:
         raise Exception("Error with database file.")
 
-    print(string)
+    keyInfo = string.split(new)
+    for val in keyInfo:
+        i=val.split(sep)
+        table[i[0]] = {'t':i[1],'v':i[2],'ct':i[3],'at':i[4]}
     
 
-def set(k,t=default,v=None):
+def set(k,t=default,v=None,ct=now(),at=None):
     global table
-    d = {'t':str(t) or default}
+    d = {'t':str(t) or default,'ct':str(ct or now())}
     if v:
         d |= {'v':str(v)}
     table[k] = d
@@ -82,4 +92,6 @@ def set(k,t=default,v=None):
     return
 
 def get(k):
-    return table[k]
+    return table.get(k)
+
+read()

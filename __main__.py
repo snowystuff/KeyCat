@@ -37,10 +37,3 @@ def ktg (K): # KEY TYPE GET (KEY) -> Type
 
 def tp(): # TYPE
     pass
-
-DATABASE.set("1234-0003","trial","username")
-DATABASE.set("1234-0001")
-DATABASE.set("1234-0002","month")
-
-DATABASE.write()
-DATABASE.read()
