@@ -15,16 +15,19 @@ class Config:
                 self.__data = self.__copy(self.default(),json.loads(config))
                 file.close()
         except FileNotFoundError:
-            dump = json.dumps(self.__data)
-            os.makedirs(os.path.dirname(configFile), exist_ok=True)
-            with open(configFile,'w') as file:
-                file.write(dump)
-                file.close()
+            self.__write()
             
+    def __write(self):
+        dump = json.dumps(self.__data)
+        os.makedirs(os.path.dirname(configFile), exist_ok=True)
+        with open(configFile,'w') as file:
+            file.write(dump)
+            file.close()
 
     def set(self,key,value):
         if self.__data[key]:
             self.__data[key] = value
+        self.__write()
         return
 
     def get(self,key):
@@ -34,6 +37,7 @@ class Config:
 
     def setAll(self,dictionary):
         self.__data = self.__copy(self.__data,dictionary)
+        self.__write()
         return
 
     def getAll(self):
@@ -41,7 +45,8 @@ class Config:
 
     def default(self):
         return { # Default config
-            "key": "./key",
+            "key": keyName,
+            "keyFile": True,
             "format": "NNNN-NNNN-NNNN"
             } 
 

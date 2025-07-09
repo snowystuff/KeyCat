@@ -2,4 +2,12 @@ from platformdirs import *
 import os
 
 appDir = user_config_dir("KeyCat")
-configFile = full_file_path = os.path.join(appDir, "config.json")
+
+confName = "config.json"
+dbName = "database"
+keyName = "key"
+
+configFile = os.path.join(appDir, confName)
+dbFile = os.path.join(appDir, dbName)
+
+default = "default"
