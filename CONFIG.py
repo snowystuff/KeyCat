@@ -47,7 +47,8 @@ class Config:
         return { # Default config
             "key": keyName,
             "keyFile": True,
-            "format": "NNNN-NNNN-NNNN"
+            "format": "NNNN-NNNN-NNNN",
+            "caseSensitive": False,
             } 
 
     def __copy(self,dictionary,reference):

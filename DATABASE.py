@@ -1,5 +1,7 @@
 import os
 import time
+import string
+from Crypto.Random import random
 from cryptography.fernet import Fernet
 
 from DIR import *
@@ -10,6 +12,25 @@ conf = Config()
 table = {}
 keyPath = os.path.join(appDir, conf.get("key"))
 
+masks = [
+    "N", # Hex digit (0-F)
+    "I", # Digit (0-9)
+    "i", # Non-lookalike digit
+    
+    "A", # Letter (A-Z)
+    "a", # Non-lookalike letter
+    
+    "B", # Any alphanumeric
+    "b", # Any non-lookalike alphanumeric
+    
+    "U", # Any uppercase letter
+    "u", # Any non-lookalike uppercase letter
+    "L", # Any lowercase letter
+    "l", # Any non-lookalike lowercase letter
+    ]
+
+maskEscape = "^"
+
 sep = ','
 new = ';'
 
@@ -18,6 +39,30 @@ tk = b"0Qm3dfrB9K81TqKroirdp9Sw3ZwfXFl4EuipKP1Ahn0="
 
 def now():
     return int(time.time())
+
+def maskOne(i):
+    if i==0:
+        return format(random.randint(0,15),'x')
+    elif i==1:
+        return str(random.randint(0,9))
+    elif i==2:
+        return ""
+    elif i==3:
+        return random.choice(string.ascii_letters)
+    else:
+        return ""
+
+def maskAll(string):
+    masked = list(string)
+
+    for idx,val in enumerate(masked):
+        for i,v in enumerate(masks):
+            if masked[idx] == masks[i]:
+                masked[idx]=maskOne(i)
+                break
+    masked = "".join(masked)
+    
+    return masked
 
 def empty():
     try:
@@ -93,5 +138,17 @@ def set(k,t=default,v=None,ct=now(),at=None):
 
 def get(k):
     return table.get(k)
+
+def gen():
+    key = conf.get("format")
+
+    parts = key.split("$")
+    for i,v in enumerate(parts):
+        if i % 2 != 0:
+            parts[i] = maskAll(v)
+
+    key = "".join(parts)
+    
+    return key
 
 read()
