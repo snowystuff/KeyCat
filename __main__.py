@@ -15,10 +15,12 @@ def get(table,index):
     except:
         return
 
-def gen(t=default,c=0): # GENERATE (type, count) -> Key List
+def gen(t=default,c=1): # GENERATE (type, count) -> Key List
     t=t or default
-    c=c or 0
-    print(DATABASE.gen())
+    c=c or 1
+    for i in range(c):
+        print(DATABASE.gen())
+    DATABASE.write()
 
 def dl(K): # DELETE (KEY)
     pass
@@ -35,7 +37,7 @@ def ver(K,V): # VERIFY (KEY, VALUE) -> Boolean
 def dac(K): # DEACTIVATE (KEY)
     pass
 
-def ls(ls,t): # LIST, LIST UNUSED, LIST DEACTIVATED, LIST ACTIVATED (type) -> Key List
+def ls(ls,t,c,i): # LIST, LIST UNUSED, LIST DEACTIVATED, LIST ACTIVATED (type, count, index) -> Key List
     pass
 
 def kts(K,T): # KEY TYPE SET (KEY, TYPE)
@@ -51,10 +53,19 @@ arg = sys.argv
 if len(arg) > 1:
     cmd = arg[1].lower()
     if cmd == "gen":
-        t = get(arg,2)
-        c = get(arg,3)
+        t = None
+        c = None
+        if typeFlag in arg:
+            idx = arg.index(typeFlag)
+            t = arg[idx+1]
+        if countFlag in arg:
+            idx = arg.index(countFlag)
+            c = int(arg[idx+1])
         gen(t,c)
-    elif cmd == "dl":
-        pass
+    elif cmd == "ls" or cmd == "lsu" or cmd == "lsd":
+        t = None
+        c = None
+        i = False
+        
 else: # return help info
     pass

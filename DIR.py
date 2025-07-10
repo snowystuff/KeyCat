@@ -11,3 +11,6 @@ configFile = os.path.join(appDir, confName)
 dbFile = os.path.join(appDir, dbName)
 
 default = "default"
+
+typeFlag = "-t"
+countFlag = "-c"

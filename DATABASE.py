@@ -13,23 +13,34 @@ table = {}
 keyPath = os.path.join(appDir, conf.get("key"))
 
 masks = [
-    "N", # Hex digit (0-F)
+    "N", # Uppercase hex digit (0-F)
+    "n", # Lowercase hex digit
     "I", # Digit (0-9)
     "i", # Non-lookalike digit
     
-    "A", # Letter (A-Z)
-    "a", # Non-lookalike letter
+    "A", # Any letter (A-Z)
+    "a", # Any non-lookalike letter
+    "[", # Uppercase letter
+    "]", # Non-lookalike uppercase letter
+    "(", # Lowercase letter
+    ")", # Non-lookalike lowercase letter
     
     "B", # Any alphanumeric
     "b", # Any non-lookalike alphanumeric
-    
-    "U", # Any uppercase letter
-    "u", # Any non-lookalike uppercase letter
-    "L", # Any lowercase letter
-    "l", # Any non-lookalike lowercase letter
+    "#", # Any non-lookalike alphanumeric (number bias)
+    "{", # Uppercase alphanumeric
+    "}", # Non-lookalike uppercase alphanumeric
+    "^", # Non-lookalike uppercase alphanumeric (number bias)
+    "<", # Lowercase alphanumeric
+    ">", # Non-lookalike lowercase alphanumeric
+    "*", # Non-lookalike lowercase alphanumeric (number bias)
     ]
 
-maskEscape = "^"
+nlookLetterU = 'ACDEFHJKLMNPQRTUVWXYZ' # S, O, I, G, B
+nlookLetterL = 'abcdefhijkmnpqrstuvwxyz' # g, l, o
+
+nlookDigit = '234789' # 0, 1, 5, 6
+numberStrings = '0123456789'
 
 sep = ','
 new = ';'
@@ -42,13 +53,43 @@ def now():
 
 def maskOne(i):
     if i==0:
-        return format(random.randint(0,15),'x')
+        return format(random.randint(0,15),'x').upper()
     elif i==1:
-        return str(random.randint(0,9))
+        return format(random.randint(0,15),'x')
     elif i==2:
-        return ""
+        return str(random.randint(0,9))
     elif i==3:
+        return random.choice(nlookDigit)
+    elif i==4:
         return random.choice(string.ascii_letters)
+    elif i==5:
+        return random.choice(nlookLetterU+nlookLetterL)
+    elif i==6:
+        return random.choice(string.ascii_uppercase)
+    elif i==7:
+        return random.choice(nlookLetterU)
+    elif i==8:
+        return random.choice(string.ascii_lowercase)
+    elif i==9:
+        return random.choice(nlookLetterL)
+    elif i==10:
+        return random.choice(string.ascii_lowercase+string.ascii_uppercase+numberStrings)
+    elif i==11:
+        return random.choice(nlookLetterU+nlookLetterL+nlookDigit)
+    elif i==12:
+        return random.choice(nlookLetterU+nlookLetterL+numberStrings)
+    elif i==13:
+        return random.choice(string.ascii_uppercase+numberStrings)
+    elif i==14:
+        return random.choice(nlookLetterU+nlookDigit)
+    elif i==15:
+        return random.choice(nlookLetterU+numberStrings)
+    elif i==16:
+        return random.choice(string.ascii_lowercase+numberStrings)
+    elif i==17:
+        return random.choice(nlookLetterL+nlookDigit)
+    elif i==18:
+        return random.choice(nlookLetterL+numberStrings)
     else:
         return ""
 
@@ -105,29 +146,32 @@ def write():
 def read():
     global table
 
-    string = ""
+    string = None
     try:
         with open(dbFile,'rb') as file:
             data = file.read()
-            chunks = data.split(b'\x00')
-            for i in chunks:
-                dec = f.decrypt(i).decode()
-                string += dec
-            file.close()
+            if data:
+                string = ''
+                chunks = data.split(b'\x00')
+                for i in chunks:
+                    dec = f.decrypt(i).decode()
+                    string += dec
+                file.close()
     except FileNotFoundError:
         os.makedirs(os.path.dirname(dbFile), exist_ok=True)
         with open(dbFile,'w') as file:
             file.close()
-    except:
-        raise Exception("Error with database file.")
+        with open(dbFile,'rb') as file:
+            string = file.read()
 
-    keyInfo = string.split(new)
-    for val in keyInfo:
-        i=val.split(sep)
-        table[i[0]] = {'t':i[1],'v':i[2],'ct':i[3],'at':i[4]}
+    if string:
+        keyInfo = string.split(new)
+        for val in keyInfo:
+            i=val.split(sep)
+            table[i[0]] = {'t':i[1],'v':i[2],'ct':i[3],'at':i[4]}
     
 
-def set(k,t=default,v=None,ct=now(),at=None):
+def setKey(k,t=default,v=None,ct=now(),at=None):
     global table
     d = {'t':str(t) or default,'ct':str(ct or now())}
     if v:
@@ -148,6 +192,8 @@ def gen():
             parts[i] = maskAll(v)
 
     key = "".join(parts)
+
+    setKey(key,default,None,now())
     
     return key
 
